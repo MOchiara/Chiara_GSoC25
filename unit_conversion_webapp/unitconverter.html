@@ -1,0 +1,51 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PyScript Example</title>
+
+  <!-- PyScript and Bootstrap -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.3.1/core.css">
+  <script type="module" src="https://pyscript.net/releases/2025.3.1/core.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+<body>
+    <div class="jumbotron">
+        <h1>Unit conversion tool </h1>
+        <p class="lead">
+            Using pyudunits2 to covert units.
+        </p>
+    </div>
+
+<!-- Row 1: Input Unit + Value Input + Convert Button -->
+<div class="row">
+        <div class="col-sm-2 p-2 ml-4 mb-1">
+            <button type="button" class="btn btn-secondary">Type input units</button>
+        </div>
+    <div class="col-sm-3 p-2">
+        <input type="text" class="form-control" id="input_unit" placeholder="Enter units">
+    </div>
+    <div class="col-sm-3 p-2">
+        <input type="number" class="form-control" id="input_value" placeholder="Enter number">
+    </div>
+    <div class="col-sm-2 p-2">
+        <button class="btn btn-primary" py-click="convert_value">Convert</button>
+    </div>
+</div>
+
+<!-- Row 2: Output Unit + Result Display and equation or error is dispayed-->
+<div class="row">
+        <div class="col-sm-2 p-2 ml-4 mb-1">
+            <button type="button" class="btn btn-secondary">Type output units </button>
+        </div>
+    <div class="col-sm-3 p-2">
+        <input type="text" class="form-control" id="output_unit" placeholder="Enter units">
+    </div>
+    <div class="col-sm-5 p-2">
+        <p id="result" class="mb-0 font-italic">Result will appear here</p>
+        <p id="equation" class="text-muted mt-1 font-italic">Equation will appear here</p>
+    </div>
+</div>
+
+<script type="py" src="./test_unit.py" config="./pyscript-units-conv.toml"></script>
+<body>
+</html>
