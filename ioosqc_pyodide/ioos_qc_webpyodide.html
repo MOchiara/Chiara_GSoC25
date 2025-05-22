@@ -1,0 +1,233 @@
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.22.0/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.18.1/plotly.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+
+    <div class="jumbotron">
+        <h1>IOOS QC Web App</h1>
+        <p class="lead">How to use Pyodide to run ioos_qc on the browser.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 p-2 ml-4 mb-1">
+            <button type="button" class="btn btn-secondary">Select chart from list:</button>
+        </div>
+        <div class="col-sm-4 p-2 mr-4 mb-1">
+            <select class="form-control" id="select" onchange="selectChange(event)">
+                <option value="gross_range_test">Gross Range Test</option>
+                <option value="flat_line_test">Flat Line Test</option>
+                <option value="rate_of_change_test">Rate of Change Test</option>
+                <option value="spike_test">Spike Test</option>    
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 p-2 ml-4 mb-1">
+            <input type="file" id="fileInput" onchange="loadFile(event)" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+            <div id="qc_test"></div>
+        </div>
+    </div>
+
+    <script>
+    let pyodide;
+
+    async function loadPyodideAndRun() {
+        pyodide = await loadPyodide();
+
+        await pyodide.loadPackage("pandas");
+
+        await pyodide.loadPackage("micropip");
+
+        const micropip = pyodide.pyimport('micropip');
+
+        try {
+            // I am having issues with some dependecies of ioos_qc. This seems to fix it (installing the pure Python version of ruamel.yaml (without C extension)
+            await micropip.install('ruamel.yaml==0.16.0');
+        } catch (error) {
+            console.error("Error during installation:", error);
+        }
+
+        try {
+            // Install ioos_qc
+            await micropip.install('ioos_qc==2.2.0');
+        } catch (error) {
+            console.error("Error during installation:", error);
+        }
+
+        // After installation, you can use ioos_qc
+        try {
+            await pyodide.runPythonAsync(`
+                import ruamel.yaml
+                print("Using C Extension: ", hasattr(ruamel.yaml, 'CLoader'))  # Test if the C extension is being used.
+                import ioos_qc
+                print(ioos_qc.__version__)  # Test if the package is installed correctly
+            `);
+        } catch (error) {
+            console.error("Error importing ioos_qc:", error);
+        }
+
+        // Load qc.py file using fetch
+        const response = await fetch('http://localhost:8000/qc.py');  // Serve this file using an HTTP server
+        const qcScript = await response.text();
+
+        // Write the loaded qc.py script into Pyodide's virtual filesystem
+        pyodide.FS.writeFile('./qc.py', qcScript);
+
+        console.log("qc.py loaded into Pyodide.");
+
+        window.loadFile = async function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const fileReader = new FileReader();
+                fileReader.onload = async function (e) {
+                    const fileContent = e.target.result;
+                    try {
+                        pyodide.FS.writeFile("/sealevel.csv", fileContent);
+                        await runPython();
+                    } catch (error) {
+                    }
+                };
+                fileReader.readAsText(file);
+            }
+        };
+
+        async function runPython(qc_test) {
+            try {
+                pyodide.globals.set("qc_test", qc_test);
+
+                const plotData = await pyodide.runPythonAsync(`
+					import sys
+					sys.path.append('/')
+
+					import json
+					import pandas as pd
+					from qc import run_tests, make_mask
+
+					df = pd.read_csv("/sealevel.csv")
+
+					result = run_tests(df, "sea_surface_height_above_sea_level")
+
+					# Ensure qc_test is not None
+					if qc_test is None:
+						raise ValueError("qc_test is None, check the value passed from JavaScript.")
+
+					mask = make_mask(df, result, "sea_surface_height_above_sea_level", qc_test)
+
+					plot_data = {
+						"time": df["time"].tolist(),
+						"sea_surface_height_above_sea_level": df["sea_surface_height_above_sea_level"].tolist(),
+						"mask": {
+							"qc_fail": mask['qc_fail'].tolist(),
+							"qc_notrun": mask['qc_notrun'].tolist(),
+							"qc_suspect": mask['qc_suspect'].tolist(),
+							"qc_pass": mask['qc_pass'].tolist(),
+						}
+					}
+					json.dumps(plot_data)
+				`);
+
+
+                const data = JSON.parse(plotData);
+                plot(data);
+
+            } catch (error) {
+                console.error("Error running Python code:", error);
+            }
+        }
+
+        window.selectChange = function(event) {
+            let selectedTest = event.target.value;
+            console.log("Selected test:", selectedTest);
+            runPython(selectedTest); 
+        }
+    }
+
+    function plot(data) {
+
+        const plotlyData = [
+            {
+                x: data.time,
+                y: data.sea_surface_height_above_sea_level,
+                type: 'line',
+                name: 'Sea Surface Height',
+                line: { color: 'blue' }
+            },
+            {
+                x: data.time,
+                y: data.mask.qc_fail,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Fail',
+                marker: { color: 'red' },
+                
+            },
+            {
+                x: data.time,
+                y: data.mask.qc_notrun,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Not Run',
+                marker: { color: 'gray' },
+                
+            },
+            {
+                x: data.time,
+                y: data.mask.qc_suspect,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Suspect',
+                marker: { color: 'orange' },
+                
+            },
+            {
+                x: data.time,
+                y: data.mask.qc_pass,
+                type: 'scatter',
+                mode: 'markers',
+                name: 'Pass',
+                marker: { color: 'green' },
+                
+            }
+        ];
+
+        const layout = {
+            title: 'Sea Surface Height with QC Tests',
+            xaxis: {
+                title: 'Time'
+            },
+            yaxis: {
+                title: 'Sea Surface Height (m)',
+                rangemode: 'tozero'
+            },
+            showlegend: true,
+            legend: {
+                x: 1.05,           
+                y: 0.5,       
+                traceorder: 'normal', 
+                font: {
+                    size: 12   
+                },
+                bgcolor: 'rgba(255, 255, 255, 0)', 
+                borderwidth: 0  
+            }
+        };
+
+        Plotly.newPlot("qc_test", plotlyData, layout);  
+    }
+
+    window.onload = loadPyodideAndRun;
+</script>
+
+</body>
+</html>
+
+
