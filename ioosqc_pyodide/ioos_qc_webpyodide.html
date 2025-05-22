@@ -75,9 +75,14 @@
             console.error("Error importing ioos_qc:", error);
         }
 
-        // Load qc.py file using fetch
+        // Load qc.py
         const response = await fetch('http://localhost:8000/qc.py');  // Serve this file using an HTTP server
         const qcScript = await response.text();
+
+        // Write the loaded qc.py script into Pyodide's virtual filesystem
+        pyodide.FS.writeFile('./qc.py', qcScript);
+
+        console.log("qc.py loaded into Pyodide.");
 
         // Write the loaded qc.py script into Pyodide's virtual filesystem
         pyodide.FS.writeFile('./qc.py', qcScript);
