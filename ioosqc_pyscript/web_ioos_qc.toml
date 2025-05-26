@@ -4,7 +4,7 @@ packages = [
   "pandas",
   "geographiclib",
   "xarray",
-  "ioos_qc >= 2.0.0",
+  "ioos-qc",
 
 ]
 
