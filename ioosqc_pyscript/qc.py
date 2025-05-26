@@ -1,17 +1,16 @@
-
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import json
 from pyodide.ffi import create_proxy
 from pyodide.http import open_url
 from js import document
 import plotly
-from ioos_qc import qartod
 from ioos_qc.config import QcConfig
 import js
+from js import eval as js_eval
+import plotly.graph_objects as go
+import js
 
-# Load QC config
 def run_tests(df, variable):
     from pyodide.http import open_url
     config_file_path = "./qc_config.json"
@@ -24,16 +23,12 @@ def run_tests(df, variable):
         tinp=df["timestamp"],
         zinp=df["z"],
     )
-
     qc_result_pd = pd.DataFrame(
         qc_results["qartod"], columns=qc_results["qartod"].keys()
     )
     result = pd.concat([df, qc_result_pd], axis=1)
 
     return result.set_index("time")
-
-
-
 
 def make_mask(df, result, variable="sea_surface_height_above_sea_level", qc_test="spike_test"):
     obs = df[variable]
@@ -47,62 +42,57 @@ def make_mask(df, result, variable="sea_surface_height_above_sea_level", qc_test
     }
 
 def plot(qc_test):
-    # Get the data
     uploaded_file = "./water_level_example_test.csv"
     df = pd.read_csv(open_url(uploaded_file))
 
     variable = "sea_surface_height_above_sea_level"
     result = run_tests(df, variable)
-    print(f'{df[variable].min()},{df[variable].max()}')
     mask = make_mask(df, result, variable, qc_test)
-    import plotly.graph_objects as go
+
     fig = go.Figure()
 
-    # Main line plot
     fig.add_trace(go.Scatter(
-        x=df['time'],
-        y=df['sea_surface_height_above_sea_level'],
+        x=df['time'].astype(str).tolist(),
+        y=df['sea_surface_height_above_sea_level'].tolist(),
         mode='lines',
         name='Sea Surface Height',
         line=dict(color='blue')
     ))
 
-    # QC markers
     fig.add_trace(go.Scatter(
-        x=df['time'],
-        y=mask['qc_fail'],
+        x=df['time'].tolist(),
+        y=mask['qc_fail'].tolist(),
         mode='markers',
         name='Fail',
         marker=dict(color='red')
     ))
 
     fig.add_trace(go.Scatter(
-        x=df['time'],
-        y=mask['qc_notrun'],
+        x=df['time'].tolist(),
+        y=mask['qc_notrun'].tolist(),
         mode='markers',
         name='Not Run',
         marker=dict(color='gray')
     ))
 
     fig.add_trace(go.Scatter(
-        x=df['time'],
-        y=mask['qc_suspect'],
+        x=df['time'].tolist(),
+        y=mask['qc_suspect'].tolist(),
         mode='markers',
         name='Suspect',
         marker=dict(color='orange')
     ))
 
     fig.add_trace(go.Scatter(
-        x=df['time'],
-        y=mask['qc_pass'],
+        x=df['time'].tolist(),
+        y=mask['qc_pass'].tolist(),
         mode='markers',
         name='Pass',
         marker=dict(color='green')
     ))
 
-    # Layout configuration
     fig.update_layout(
-        title='Sea Surface Height with QC Tests',
+        title=f'Sea Surface Height - {qc_test}',
         xaxis_title='Time',
         yaxis_title='Sea Surface Height (m)',
         yaxis=dict(rangemode='tozero'),
@@ -117,42 +107,20 @@ def plot(qc_test):
         )
     )
 
-
-    '''
-    fig = px.line(df,
-                  x="time", y=variable,
-                  width=800, height=400)
-    fig.add_trace(
-        px.scatter(x=df["time"], y=mask["qc_fail"], color_discrete_sequence=["red"]).data[0]
-    )
-    fig.add_trace(
-        px.scatter(x=df["time"], y=mask["qc_notrun"], color_discrete_sequence=["gray"]).data[0]
-    )
-    fig.add_trace(
-        px.scatter(x=df["time"], y=mask["qc_suspect"], color_discrete_sequence=["orange"]).data[0]
-    )
-    fig.add_trace(
-        px.scatter(x=df["time"], y=mask["qc_pass"], color_discrete_sequence=["green"]).data[0]
-    )
-   '''
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     js_code = f"""
         var figure = {graphJSON};
         Plotly.newPlot('qc_test', figure.data, figure.layout);
     """
-    from js import eval as js_eval
-    
     js_eval(js_code)
 
 def selectChange(event):
-    print("Dropdown value changed")  # Debug log
     choice = document.getElementById("select").value
     print(f"Selected choice: {choice}")
     plot(choice)
 
 
 def setup():
-    print("Setting up event listener for dropdown")  # Debug log
     change_proxy = create_proxy(selectChange)
     e = document.getElementById("select")
     e.addEventListener("change", change_proxy)
@@ -160,12 +128,6 @@ def setup():
 
 setup()
 
-try:
-    plot(qc_test="gross_range_test")
-except Exception as e:
-    print(f"Top-level plot error: {e}")
-    import traceback
-    traceback.print_exc()
-
+plot(qc_test="gross_range_test")
 
 
