@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IOOS QC Web App</title>
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.3.1/core.css" />
+  <script type="module" src="https://pyscript.net/releases/2025.3.1/core.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.18.1/plotly.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.23.1/full/pyodide.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="jumbotron">
+        <h1>IOOS QC Web App</h1>
+        <p class="lead">How to use pyscript to run ioos_qc on the browser.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2 p-2 ml-4 mb-1">
+            <button type="button" class="btn btn-secondary">Select chart from list:</button>
+        </div>
+        <div class="col-sm-4 p-2 mr-4 mb-1">
+            <select class="form-control" id="select">
+                <option value="gross_range_test">Gross Range Test</option>
+                <option value="flat_line_test">Flat Line Test</option>
+                <option value="rate_of_change_test">Rate of Change Test</option>
+                <option value="spike_test">Spike Test</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 p-2 shadow ml-4 mr-4 mb-4 bg-white rounded">
+            <div id="qc_test"></div>
+        </div>
+    </div>
+    <py-script src="./qc.py" config="./web_ioos_qc.toml"></py-script>
+</body>
+</html>
