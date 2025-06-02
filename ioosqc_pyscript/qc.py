@@ -21,7 +21,7 @@ def handle_file_upload(event):
         reader = FileReader.new()
 
         def onload(evt):
-            global uploaded_df  # <--- add this!
+            global uploaded_df
             content = evt.target.result
             from io import StringIO
             uploaded_df = pd.read_csv(StringIO(content))
@@ -31,6 +31,8 @@ def handle_file_upload(event):
         onload_proxy = create_proxy(onload)
         reader.onload = onload_proxy
         reader.readAsText(file)
+
+
 
 def run_tests(df, variable):
     from pyodide.http import open_url
@@ -161,13 +163,49 @@ def load_data_click(event):
         return
     print(f"Loading plot with test: {qc_test}")
     plot(qc_test)
-def load_data_click(event):
-    qc_test = document.getElementById("select").value
+
+def update_variable_options():
+    global uploaded_df
     if uploaded_df is None:
-        show_message("No uploaded file found. Please upload a file first.", "warning")
         return
-    print(f"Loading plot with test: {qc_test}")
-    plot(qc_test)
+
+    variable_select = js.document.getElementById("variableSelect")
+
+    variable_select.innerHTML = ""
+
+    for col in uploaded_df.columns:
+        option = js.document.createElement("option")
+        option.value = col
+        option.text = col
+        variable_select.appendChild(option)
+
+def download_processed_data(event):
+    global uploaded_df
+
+    if uploaded_df is None:
+        show_message("No data to download. Please upload a file first.", "warning")
+        return
+
+    qc_test = document.getElementById("select").value
+    variable = document.getElementById("variableSelect").value
+
+    result = run_tests(uploaded_df, variable)
+    csv_content = result.to_csv(index=False)
+
+    blob = js.Blob.new([csv_content], {"type": "text/csv"})
+    url = js.URL.createObjectURL(blob)
+
+    download_link = js.document.createElement("a")
+    download_link.href = url
+    download_link.download = "masked_qc_data.csv"
+    download_link.style.display = "none"
+    js.document.body.appendChild(download_link)
+    download_link.click()
+    js.document.body.removeChild(download_link)
+    js.URL.revokeObjectURL(url)
+
+    show_message("File successfully downloaded.", "success")
+
 def setup():
     change_proxy = create_proxy(selectChange)
     file_input_proxy = create_proxy(handle_file_upload)
@@ -176,6 +214,10 @@ def setup():
     document.getElementById("select").addEventListener("change", change_proxy)
     document.getElementById("fileInput").addEventListener("change", file_input_proxy)
     document.getElementById("loadDataBtn").addEventListener("click", load_button_proxy)
+
+    download_button_proxy = create_proxy(download_processed_data)
+    document.getElementById("downloadBtn").addEventListener("click", download_button_proxy)
+
 def show_message(msg, alert_type="info"):
     message_div = document.getElementById("message")
     message_div.className = f"alert alert-{alert_type}"
