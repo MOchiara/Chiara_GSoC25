@@ -11,7 +11,7 @@
 <body>
     <div class="jumbotron">
         <h1>IOOS QC Web App</h1>
-        <p class="lead">How to use pyscript to run ioos_qc on the browser.</p>
+        <p class="lead">Using pyscript to run ioos_qc on the browser.</p>
     </div>
 
     <div class="row">
@@ -36,6 +36,13 @@
                 <button id="loadDataBtn" class="btn btn-primary">Load Data</button>
             </div>
         </div>
+    </div>
+
+    <div class="col-sm-3 p-2 mb-1">
+        <label for="variableSelect">Select variable to plot:</label>
+        <select class="form-control" id="variableSelect">
+
+        </select>
     </div>
 
     <div id="message" class="alert alert-info" style="display: none;"></div>
