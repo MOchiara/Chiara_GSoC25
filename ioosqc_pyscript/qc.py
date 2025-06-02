@@ -9,6 +9,7 @@ from ioos_qc.config import QcConfig
 from js import eval as js_eval
 import plotly.graph_objects as go
 from js import FileReader
+import js
 
 uploaded_df = None
 
@@ -25,12 +26,11 @@ def handle_file_upload(event):
             from io import StringIO
             uploaded_df = pd.read_csv(StringIO(content))
             print("File loaded successfully")
+            update_variable_options()
 
         onload_proxy = create_proxy(onload)
         reader.onload = onload_proxy
         reader.readAsText(file)
-
-
 
 def run_tests(df, variable):
     from pyodide.http import open_url
@@ -74,7 +74,14 @@ def plot(qc_test):
         df = uploaded_df
         show_message("Uploaded file loaded and used.")
 
-    variable = "sea_surface_height_above_sea_level"
+    # Selected variable from dropdown
+    variable_select = js.document.getElementById("variableSelect")
+    variable = variable_select.value
+
+    # If no variable selected, back to default var in default dataset
+    if not variable:
+        variable = "sea_surface_height_above_sea_level"
+
     result = run_tests(df, variable)
     mask = make_mask(df, result, variable, qc_test)
 
@@ -154,6 +161,13 @@ def load_data_click(event):
         return
     print(f"Loading plot with test: {qc_test}")
     plot(qc_test)
+def load_data_click(event):
+    qc_test = document.getElementById("select").value
+    if uploaded_df is None:
+        show_message("No uploaded file found. Please upload a file first.", "warning")
+        return
+    print(f"Loading plot with test: {qc_test}")
+    plot(qc_test)
 def setup():
     change_proxy = create_proxy(selectChange)
     file_input_proxy = create_proxy(handle_file_upload)
@@ -162,7 +176,6 @@ def setup():
     document.getElementById("select").addEventListener("change", change_proxy)
     document.getElementById("fileInput").addEventListener("change", file_input_proxy)
     document.getElementById("loadDataBtn").addEventListener("click", load_button_proxy)
-
 def show_message(msg, alert_type="info"):
     message_div = document.getElementById("message")
     message_div.className = f"alert alert-{alert_type}"
@@ -170,6 +183,5 @@ def show_message(msg, alert_type="info"):
     message_div.style.display = "block"
 
 setup()
-
 plot(qc_test="gross_range_test")
 
