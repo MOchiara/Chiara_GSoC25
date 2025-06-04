@@ -11,7 +11,30 @@ import plotly.graph_objects as go
 from js import FileReader
 import js
 
+
 uploaded_df = None
+
+test_params = {
+    "gross_range_test": [
+        {"name": "fail_span_min", "label": "Fail Span Min", "type": "number", "default": -10},
+        {"name": "fail_span_max", "label": "Fail Span Max", "type": "number", "default": 10},
+        {"name": "suspect_span_min", "label": "Suspect Span Min", "type": "number", "default": -2},
+        {"name": "suspect_span_max", "label": "Suspect Span Max", "type": "number", "default": 3},
+    ],
+    "flat_line_test": [
+        {"name": "tolerance", "label": "Tolerance", "type": "number", "default": 0.001},
+        {"name": "suspect_threshold", "label": "Suspect Threshold", "type": "number", "default": 10800},
+        {"name": "fail_threshold", "label": "Fail Threshold", "type": "number", "default": 21600},
+    ],
+    "rate_of_change_test": [
+        {"name": "threshold", "label": "Threshold", "type": "number", "default": 0.001},
+    ],
+    "spike_test": [
+        {"name": "suspect_threshold", "label": "Suspect Threshold", "type": "number", "default": 0.8},
+        {"name": "fail_threshold", "label": "Fail Threshold", "type": "number", "default": 3},
+    ]
+}
+
 
 def handle_file_upload(event):
     global uploaded_df
@@ -33,12 +56,77 @@ def handle_file_upload(event):
         reader.readAsText(file)
 
 
+def get_value_by_id(id):
+    el = document.getElementById(id)
+    if el is None:
+        raise ValueError(f"Element with ID '{id}' not found.")
+    return float(el.value)
 
-def run_tests(df, variable):
-    from pyodide.http import open_url
-    config_file_path = "./qc_config.json"
-    with open_url(config_file_path) as config_json:
-        qc_config = json.load(config_json)
+def render_test_inputs(event=None):
+    selected_test = document.getElementById("select").value
+    container = document.getElementById("params-form")
+    container.innerHTML = ""  # Clear existing
+
+    for param in test_params[selected_test]:
+        div = document.createElement("div")
+        div.setAttribute("class", "form-group")
+
+        label = document.createElement("label")
+        label.innerText = param["label"]
+
+        input_el = document.createElement("input")
+        input_el.setAttribute("type", param["type"])
+        input_el.setAttribute("class", "form-control")
+        input_el.setAttribute("id", param["name"])
+        input_el.setAttribute("value", str(param["default"]))
+
+        div.appendChild(label)
+        div.appendChild(input_el)
+        container.appendChild(div)
+
+def get_user_config(selected_test):
+    config = {}
+    if selected_test == "gross_range_test":
+        config = {
+            "fail_span": [
+                get_value_by_id("fail_span_min"),
+                get_value_by_id("fail_span_max")
+            ],
+            "suspect_span": [
+                get_value_by_id("suspect_span_min"),
+                get_value_by_id("suspect_span_max")
+            ]
+        }
+    elif selected_test == "flat_line_test":
+        config = {
+            "tolerance": get_value_by_id("tolerance"),
+            "suspect_threshold": get_value_by_id("suspect_threshold"),
+            "fail_threshold": get_value_by_id("fail_threshold")
+        }
+    elif selected_test == "rate_of_change_test":
+        config = {
+            "threshold": get_value_by_id("threshold")
+        }
+    elif selected_test == "spike_test":
+        config = {
+            "suspect_threshold": get_value_by_id("suspect_threshold"),
+            "fail_threshold": get_value_by_id("fail_threshold")
+        }
+    else:
+        raise ValueError(f"Unknown test selected: {selected_test}")
+
+    return {"qartod": {selected_test: config}}
+
+
+def run_tests(df, variable, selected_test, use_defaults=False):
+    if use_defaults:
+        from pyodide.http import open_url
+        config_file_path = "./qc_config.json"
+        with open_url(config_file_path) as config_json:
+            qc_config = json.load(config_json)
+    else:
+        qc_config = get_user_config(selected_test)
+
 
     qc = QcConfig(qc_config)
     qc_results = qc.run(
@@ -51,7 +139,6 @@ def run_tests(df, variable):
         qc_results["qartod"], columns=qc_results["qartod"].keys()
     )
     result = pd.concat([df, qc_result_pd], axis=1)
-
     return result.set_index("time")
 
 def make_mask(df, result, variable="sea_surface_height_above_sea_level", qc_test="spike_test"):
@@ -65,7 +152,7 @@ def make_mask(df, result, variable="sea_surface_height_above_sea_level", qc_test
         "qc_notrun": np.ma.masked_where(mask != 2, obs),
     }
 
-def plot(qc_test):
+def plot(qc_test, use_defaults=False):
     global uploaded_df
 
     if uploaded_df is None:
@@ -84,7 +171,7 @@ def plot(qc_test):
     if not variable:
         variable = "sea_surface_height_above_sea_level"
 
-    result = run_tests(df, variable)
+    result = run_tests(df, variable,qc_test, use_defaults=use_defaults)
     mask = make_mask(df, result, variable, qc_test)
 
     fig = go.Figure()
@@ -206,6 +293,18 @@ def download_processed_data(event):
 
     show_message("File successfully downloaded.", "success")
 
+def run_qc_test(event):
+    global uploaded_df
+    qc_test = document.getElementById("select").value
+    if uploaded_df is None:
+        show_message("No uploaded file found. Please upload a file first.", "warning")
+        return
+    try:
+        plot(qc_test)
+    except Exception as e:
+        show_message(f"Error running test: {e}", "danger")
+        print(f"Error: {e}")
+
 def setup():
     change_proxy = create_proxy(selectChange)
     file_input_proxy = create_proxy(handle_file_upload)
@@ -217,7 +316,10 @@ def setup():
 
     download_button_proxy = create_proxy(download_processed_data)
     document.getElementById("downloadBtn").addEventListener("click", download_button_proxy)
-
+    run_qc_proxy = create_proxy(run_qc_test)
+    document.getElementById("runQcBtn").addEventListener("click", run_qc_proxy)
+    select_change_proxy = create_proxy(render_test_inputs)
+    document.getElementById("select").addEventListener("change", select_change_proxy)
 def show_message(msg, alert_type="info"):
     message_div = document.getElementById("message")
     message_div.className = f"alert alert-{alert_type}"
@@ -225,5 +327,9 @@ def show_message(msg, alert_type="info"):
     message_div.style.display = "block"
 
 setup()
-plot(qc_test="gross_range_test")
+render_test_inputs()
+try:
+    plot(qc_test="gross_range_test", use_defaults=True)
+except Exception as e:
+    print(f"Skipping initial plot due to missing inputs: {e}")
 
