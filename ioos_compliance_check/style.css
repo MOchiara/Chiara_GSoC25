@@ -77,3 +77,9 @@ body {
   font-style: italic;
   color: #666;
 }
+
+#status-msg {
+  text-align: center;
+  font-size: 1.2em;
+  margin-top: 1em;
+}
