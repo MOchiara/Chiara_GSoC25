@@ -10,6 +10,7 @@ from js import eval as js_eval
 import plotly.graph_objects as go
 from js import FileReader
 import js
+import asyncio
 
 
 uploaded_df = None
@@ -242,7 +243,11 @@ def plot(qc_test, use_defaults=False):
 def selectChange(event):
     choice = document.getElementById("select").value
     print(f"Selected choice: {choice}")
-    plot(choice)
+    render_test_inputs()
+    async def delayed_plot():
+        await asyncio.sleep(0.1)
+        plot(choice)
+    asyncio.ensure_future(delayed_plot())
 def load_data_click(event):
     qc_test = document.getElementById("select").value
     if uploaded_df is None:
