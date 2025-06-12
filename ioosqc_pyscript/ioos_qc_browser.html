@@ -9,6 +9,24 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
+
+<div id="loadingIndicator" class="text-center" style="display: block; margin-top: 20px;">
+  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+    <span class="sr-only">Loading...</span>
+  </div>
+  <p>Processing, please wait...</p>
+</div>
+
+<script>
+  document.addEventListener("py:ready", () => {
+    console.log("PyScript is ready! Hiding loader.");
+    const loader = document.getElementById("loadingIndicator");
+    if (loader) {
+      loader.style.display = "none";
+    }
+  });
+</script>
+
     <div class="jumbotron">
         <h1>IOOS QC Web App</h1>
         <p class="lead">Using pyscript to run ioos_qc on the browser.</p>
@@ -31,15 +49,7 @@
     <div class="col-sm-6 p-2 ml-4 mb-1" id="test-params">
       <h5>Set QC Parameters:</h5>
       <div id="params-form"></div>
-      <button id="applyParams" class="btn btn-primary mt-2">Apply Parameters</button>
     </div>
-
-    <div id="params-form" class="col-sm-4 p-2 mb-2"></div>
-
-
-    <div class="col-sm-3 p-2 mb-2">
-    <button id="runQcBtn" class="btn btn-success">Run QC Test</button>
-</div>
 
     <div class="col-sm-4">
         <div class="row no-gutters">
@@ -47,7 +57,6 @@
                 <input type="file" id="fileInput" class="form-control" />
             </div>
             <div class="col-auto pl-2">
-                <button id="loadDataBtn" class="btn btn-primary">Load Data</button>
             </div>
         </div>
     </div>
@@ -55,8 +64,12 @@
     <div class="col-sm-3 p-2 mb-1">
         <label for="variableSelect">Select variable to plot:</label>
         <select class="form-control" id="variableSelect">
-
         </select>
+    </div>
+
+    <div id="params-form" class="col-sm-4 p-2 mb-2"></div>
+        <div class="col-sm-3 p-2 mb-2">
+        <button id="runQcBtn" class="btn btn-success">Run QC Test</button>
     </div>
 
     <div id="message" class="alert alert-info" style="display: none;"></div>
@@ -78,7 +91,7 @@
         <button id="downloadBtn" class="btn btn-success">Download Flagged Data</button>
     </div>
 
-
     <py-script src="./qc.py" config="./web_ioos_qc.toml"></py-script>
+<script src="app.js"></script>
 </body>
 </html>
