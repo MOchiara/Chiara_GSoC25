@@ -5,18 +5,35 @@ from compliance_checker.runner import CheckSuite, ComplianceChecker
 import io
 import tempfile
 import sys
+from pyodide.ffi import to_js
+import js
 
 check_suite = CheckSuite()
 check_suite.load_all_available_checkers()
+
+def get_checker_list():
+    check_suite = CheckSuite()
+    check_suite.load_all_available_checkers()
+    checkers = list(check_suite.checkers.keys())
+    if len(checkers) == 0:
+        print("No checkers found!")
+    else:
+        print('Populating')
+        js.populate_dropdown(to_js(checkers))
+
+
+from js import document  # or import js
+
 
 def on_test_selected(event):
     select_element = document.getElementById("select")
     selected_index = select_element.selectedIndex
     selected_option = select_element.options.item(selected_index)
-    selected_text = selected_option.text
 
+    selected_text = getattr(selected_option, 'text', None)
     output_div = document.getElementById("output-text")
     output_div.textContent = f"You selected: {selected_text}"
+
 
 def on_file_selected(event):
     file_input = document.querySelector('input[type="file"]')
@@ -95,3 +112,4 @@ def setup():
         on_test_selected(None)
 
 setup()
+get_checker_list()
