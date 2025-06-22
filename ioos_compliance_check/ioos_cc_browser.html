@@ -18,28 +18,21 @@
     </div>
 
     <!-- Select test drop down -- Maybe I can make this smarter and create the dorpdown from all available checkers -->
-    <div class="row align-items-center mb-4">
+    <script src="populate_dropdown.js"></script>
+   <div class="row align-items-center mb-4">
       <div class="col-md-3 select-label-container">
         <button type="button" class="btn btn-secondary w-100" disabled>Select the test you want to run:</button>
       </div>
-      <div class="col-md-4">
-        <select class="form-control form-control-lg" id="select">
-          <option value="acdd:1.1">ACDD 1.1</option>
-          <option value="acdd:1.3">ACDD 1.3</option>
-          <option value="cf:1.10">CF 1.10</option>
-          <option value="cf:1.6">CF 1.6</option>
-          <option value="cf:1.7">CF 1.7</option>
-          <option value="cf:1.8">CF 1.8</option>
-          <option value="ioos:0.1">IOOS 0.1</option>
-          <option value="ioos:1.1">IOOS 1.1</option>
-          <option value="ioos:1.2">IOOS 1.2</option>
-          <option value="ioos_sos:0.1">IOOS SOS 0.1</option>
-        </select>
-      </div>
-      <div class="col-md-5">
-        <div id="output-text">You selected: ACDD 1.1</div>
-      </div>
+    <div class="col-md-4">
+      <select class="form-control form-control-lg" id="select">
+        <!-- Options will be inserted dynamically by JS -->
+      </select>
     </div>
+  <div class="col-md-5">
+    <div id="output-text">You selected: </div>
+  </div>
+</div>
+
 
     <div class="section">
       <div class="row align-items-center">
