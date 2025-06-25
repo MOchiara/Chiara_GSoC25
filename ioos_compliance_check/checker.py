@@ -49,28 +49,36 @@ async def run_checker(event):
     from js import document
     file_input = document.querySelector('input[type="file"]')
     files = list(file_input.files)
-
-    if not files:
-        document.getElementById("status-msg").textContent = "No file selected."
-        return
-
-    file = files[0]
+    url_input = document.getElementById("url-input").value.strip()
     checker_name = document.getElementById("select").value.split(":")[0]
-
-    file_data = await file.arrayBuffer()
-    data_bytes = bytes(file_data.to_py())
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
-        tmp.write(data_bytes)
-        tmp_path = tmp.name
 
     output_capture = io.StringIO()
     original_stdout = sys.stdout
     sys.stdout = output_capture
 
     try:
+        # File upload
+        if files:
+            file = files[0]
+            file_data = await file.arrayBuffer()
+            data_bytes = bytes(file_data.to_py())
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".nc") as tmp:
+                tmp.write(data_bytes)
+                tmp_path = tmp.name
+                ds_location = tmp_path
+
+        #URL input option
+        elif url_input:
+            ds_location = url_input
+
+        else:
+            document.getElementById("status-msg").textContent = "No file or URL provided."
+            sys.stdout = original_stdout
+            return
+
         passed, had_errors = ComplianceChecker.run_checker(
-            ds_loc=tmp_path,
+            ds_loc=ds_location,
             checker_names=[checker_name],
             verbose=2,
             criteria="normal",
@@ -84,7 +92,6 @@ async def run_checker(event):
         status_msg = document.getElementById("status-msg")
         status_text = f"Passed: {passed}, Had errors: {had_errors}. Check report below"
         status_msg.textContent = status_text
-
         status_msg.className = "text-center"
 
         if passed and not had_errors:
@@ -97,6 +104,7 @@ async def run_checker(event):
     except Exception as e:
         sys.stdout = original_stdout
         document.getElementById("status-msg").textContent = f"Error: {e}"
+
 
 def setup():
     button = document.getElementById("submit-btn")
