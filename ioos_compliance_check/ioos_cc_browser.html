@@ -9,8 +9,15 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
+<div id="loadingIndicator" class="text-center" style="display: none;">
+  <div class="spinner-border text-primary" role="status">
+    <span class="sr-only">Loading...</span>
+  </div>
+  <p>Processing, please wait...</p>
+</div>
   <div class="container my-4">
     <div class="jumbotron text-center">
       <h1 class="display-4">IOOS Compliance Checker</h1>
@@ -83,6 +90,6 @@
     <pre id="report-output" style="white-space: pre-wrap; background-color: #f4f4f4; padding: 1em; border: 1px solid #ccc;"></pre>
 
 </div>
-
+<script src="app.js"></script>
 </body>
 </html>
