@@ -139,7 +139,8 @@ def run_tests(df, variable, selected_test, use_defaults=False):
     qc_result_pd = pd.DataFrame(
         qc_results["qartod"], columns=qc_results["qartod"].keys()
     )
-    result = pd.concat([df, qc_result_pd], axis=1)
+    test_results = qc_result_pd['spike_test']
+    result = pd.concat([df, test_results], axis=1)
     return result.set_index("time")
 
 def make_mask(df, result, variable="sea_surface_height_above_sea_level", qc_test="spike_test"):
