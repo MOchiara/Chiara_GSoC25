@@ -80,8 +80,15 @@
 <div>
     <p id="status-msg"></p>
 
-    <h3>Checker Report</h3>
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+      <h3 class="mb-0">Checker Report</h3>
+      <button class="btn btn-success" id="download-report-btn">
+        <i class="fa fa-download"></i> Download Report
+      </button>
+    </div>
+
     <pre id="report-output" style="white-space: pre-wrap; background-color: #f4f4f4; padding: 1em; border: 1px solid #ccc;"></pre>
+
 </div>
 <script src="app.js"></script>
 </body>

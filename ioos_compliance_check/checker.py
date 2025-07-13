@@ -21,10 +21,6 @@ def get_checker_list():
         print('Populating')
         js.populate_dropdown(to_js(checkers))
 
-
-from js import document  # or import js
-
-
 def on_test_selected(event):
     select_element = document.getElementById("select")
     selected_index = select_element.selectedIndex
@@ -105,6 +101,20 @@ async def run_checker(event):
         sys.stdout = original_stdout
         document.getElementById("status-msg").textContent = f"Error: {e}"
 
+def download_report(event):
+    report_text = document.getElementById("report-output").textContent
+
+    if not report_text:
+        js.alert("No report to download.")
+        return
+
+    blob = js.Blob.new([report_text], { "type": "text/plain" })
+    url = js.URL.createObjectURL(blob)
+    link = document.createElement("a")
+    link.href = url
+    link.download = "compliance_report.txt"
+    link.click()
+    js.URL.revokeObjectURL(url)
 
 def setup():
     button = document.getElementById("submit-btn")
@@ -118,6 +128,10 @@ def setup():
     if select_element:
         select_element.addEventListener("change", create_proxy(on_test_selected))
         on_test_selected(None)
+
+    download_btn = document.getElementById("download-report-btn")
+    if download_btn:
+        download_btn.addEventListener("click", create_proxy(download_report))
 
 setup()
 get_checker_list()
