@@ -25,6 +25,9 @@ During this first coding period:
 - MOchiara/Chiara_GSoC25#20  [FEAT] Populating dropdown list dynamically in IOOS compliance checker
 - MOchiara/Chiara_GSoC25#24 [FEAT] Loading bar for both cc and qc. Removed some buttons form qc
 - MOchiara/Chiara_GSoC25#25 [FIX] Fix how the report in cc is generated
+- MOchiara/Chiara_GSoC25#27 [FIX] Only results from selected test can be downloaded
+- MOchiara/Chiara_GSoC25#28 [FEAT] Add options load data from URL
+- MOchiara/Chiara_GSoC25#30 [FEAT] Add options to download report
 
 - [Version release v0.1-beta](https://github.com/MOchiara/Chiara_GSoC25/releases/tag/v0.1-beta) to host test data
 
