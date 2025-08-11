@@ -52,10 +52,13 @@ def handle_file_upload(event):
             print("File loaded successfully")
             update_variable_options()
 
+            # Update filename display in HTML
+            filename_display = document.getElementById("filename-display")
+            filename_display.innerText = file.name
+
         onload_proxy = create_proxy(onload)
         reader.onload = onload_proxy
         reader.readAsText(file)
-
 
 def get_value_by_id(id):
     el = document.getElementById(id)
