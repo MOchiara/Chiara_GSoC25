@@ -1,4 +1,5 @@
-
+import micropip
+await micropip.install("requests")
 from js import document
 from pyodide.ffi import create_proxy
 from compliance_checker.runner import CheckSuite, ComplianceChecker

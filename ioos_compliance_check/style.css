@@ -24,12 +24,13 @@ body {
 }
 
 .btn-secondary {
-  background-color: #6c757d;
-  border: none;
-  pointer-events: none;
-  user-select: none;
+  background-color: #cce5ff !important;
+  color: #212529 !important;
+  font-size: 1.25rem !important;
+  font-weight: 500 !important;
+  pointer-events: none !important;
+  user-select: none !important;
 }
-
 .select-label-container {
   display: flex;
   align-items: center;
@@ -82,4 +83,11 @@ body {
   text-align: center;
   font-size: 1.2em;
   margin-top: 1em;
+}
+
+.section-divider {
+  border: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #bbb, transparent);
+  margin: 2.5rem 0;
 }

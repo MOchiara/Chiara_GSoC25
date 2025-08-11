@@ -23,25 +23,7 @@
       <h1 class="display-4">IOOS Compliance Checker</h1>
       <p class="lead">Using PyScript to run IOOS compliance-checker in the browser.</p>
     </div>
-
-    <!-- Select test drop down -- Maybe I can make this smarter and create the dorpdown from all available checkers -->
-    <script src="populate_dropdown.js"></script>
-   <div class="row align-items-center mb-4">
-      <div class="col-md-3 select-label-container">
-        <button type="button" class="btn btn-secondary w-100" disabled>Select the test you want to run:</button>
-      </div>
-    <div class="col-md-4">
-      <select class="form-control form-control-lg" id="select">
-        <!-- Options will be inserted dynamically by JS -->
-      </select>
-    </div>
-  <div class="col-md-5">
-    <div id="output-text">You selected: </div>
-  </div>
-</div>
-
-
-    <div class="section">
+<div class="section">
       <div class="row align-items-center">
         <div class="col-md-3">
           <h4>Upload your dataset</h4>
@@ -60,12 +42,28 @@
       </div>
     </div>
 
-
     <!-- Type URL option -- Still havent implemented but maybe we want it  -->
     <div class="section">
       <h4>Or provide a remote OPeNDAP Data URL</h4>
       <input type="text" class="form-control form-control-lg" id="url-input" placeholder="Enter dataset URL" />
     </div>
+
+  <hr class="section-divider" />
+    <!-- Select test drop down-->
+    <script src="populate_dropdown.js"></script>
+   <div class="row align-items-center mb-4">
+      <div class="col-md-3 select-label-container">
+        <button type="button" class="btn btn-secondary w-100" disabled>Select the test you want to run:</button>
+      </div>
+    <div class="col-md-4">
+      <select class="form-control form-control-lg" id="select">
+        <!-- Options will be inserted dynamically by JS -->
+      </select>
+    </div>
+  <div class="col-md-5">
+    <div id="output-text">You selected: </div>
+  </div>
+</div>
 
     <div class="submit-row">
       <button type="button" class="btn btn-primary btn-lg" id="submit-btn">Submit</button>
