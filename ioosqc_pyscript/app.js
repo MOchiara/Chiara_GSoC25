@@ -8,3 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+const fileInput = document.getElementById('fileInput');
+const filenameDisplay = document.getElementById('filename-display');
+
+fileInput.addEventListener('change', function () {
+  if (fileInput.files.length > 0) {
+    filenameDisplay.textContent = fileInput.files[0].name;
+  } else {
+    filenameDisplay.textContent = '';
+  }
+});
