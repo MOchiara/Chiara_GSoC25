@@ -48,17 +48,31 @@ def handle_file_upload(event):
             global uploaded_df
             content = evt.target.result
             from io import StringIO
-            uploaded_df = pd.read_csv(StringIO(content))
-            print("File loaded successfully")
-            update_variable_options()
 
-            # Update filename display in HTML
-            filename_display = document.getElementById("filename-display")
-            filename_display.innerText = file.name
+            # Detect possible delimiter
+            sample = content[:1024]
+            if ";" in sample and sample.count(";") > sample.count(","):
+                delimiter = ";"
+            elif "\t" in sample and sample.count("\t") > sample.count(","):
+                delimiter = "\t"
+            else:
+                delimiter = ","
+
+            try:
+                uploaded_df = pd.read_csv(StringIO(content), delimiter=delimiter)
+                update_variable_options()
+
+                filename_display = document.getElementById("filename-display")
+                filename_display.innerText = file.name
+                show_message(f"File '{file.name}' loaded successfully.", "success")
+            except Exception as e:
+                show_message(f"Failed to load file: {e}", "danger")
+                print(f"CSV load error: {e}")
 
         onload_proxy = create_proxy(onload)
         reader.onload = onload_proxy
         reader.readAsText(file)
+
 
 def get_value_by_id(id):
     el = document.getElementById(id)
@@ -122,7 +136,7 @@ def get_user_config(selected_test):
     return {"qartod": {selected_test: config}}
 
 
-def run_tests(df, variable, selected_test, use_defaults=False):
+def run_tests(df, variable, selected_test, x_var="timestamp", z_var="z", use_defaults=False):
     if use_defaults:
         from pyodide.http import open_url
         config_file_path = "./qc_config.json"
@@ -135,8 +149,8 @@ def run_tests(df, variable, selected_test, use_defaults=False):
     qc = QcConfig(qc_config)
     qc_results = qc.run(
         inp=df[variable],
-        tinp=df["timestamp"],
-        zinp=df["z"],
+        tinp=df[x_var],
+        zinp=df[z_var],
     )
 
     qc_result_pd = pd.DataFrame(
@@ -144,7 +158,7 @@ def run_tests(df, variable, selected_test, use_defaults=False):
     )
     test_results = qc_result_pd[selected_test]
     result = pd.concat([df, test_results], axis=1)
-    return result.set_index("time")
+    return result.set_index(x_var)
 
 def make_mask(df, result, variable="sea_surface_height_above_sea_level", qc_test="spike_test"):
     obs = df[variable]
@@ -158,103 +172,114 @@ def make_mask(df, result, variable="sea_surface_height_above_sea_level", qc_test
     }
 
 async def plot(qc_test, use_defaults=False):
-    global uploaded_df
-    loader = document.getElementById("loadingIndicator")
-    if loader:
-        loader.style.display = "block"
-
-    await asyncio.sleep(0)
-    try:
-        if uploaded_df is None:
-            show_message("No file uploaded. Using default file for display.")
-            uploaded_file = "./water_level_example_test.csv"
-            df = pd.read_csv(open_url(uploaded_file))
-        else:
-            df = uploaded_df
-            show_message("Uploaded file loaded and used.")
-
-        # Selected variable from dropdown
-        variable_select = js.document.getElementById("variableSelect")
-        variable = variable_select.value
-
-        # If no variable selected, back to default var in default dataset
-        if not variable:
-            variable = "sea_surface_height_above_sea_level"
-
-        result = run_tests(df, variable,qc_test, use_defaults=use_defaults)
-        mask = make_mask(df, result, variable, qc_test)
-
-        fig = go.Figure()
-
-        fig.add_trace(go.Scatter(
-            x=df['time'].astype(str).tolist(),
-            y=df['sea_surface_height_above_sea_level'].tolist(),
-            mode='lines',
-            name='Sea Surface Height',
-            line=dict(color='blue')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=df['time'].tolist(),
-            y=mask['qc_fail'].tolist(),
-            mode='markers',
-            name='Fail',
-            marker=dict(color='red')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=df['time'].tolist(),
-            y=mask['qc_notrun'].tolist(),
-            mode='markers',
-            name='Not Run',
-            marker=dict(color='gray')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=df['time'].tolist(),
-            y=mask['qc_suspect'].tolist(),
-            mode='markers',
-            name='Suspect',
-            marker=dict(color='orange')
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=df['time'].tolist(),
-            y=mask['qc_pass'].tolist(),
-            mode='markers',
-            name='Pass',
-            marker=dict(color='green')
-        ))
-
-        fig.update_layout(
-            title=f'Sea Surface Height - {qc_test}',
-            xaxis_title='Time',
-            yaxis_title='Sea Surface Height (m)',
-            yaxis=dict(rangemode='tozero'),
-            showlegend=True,
-            legend=dict(
-                x=1.05,
-                y=0.5,
-                traceorder='normal',
-                font=dict(size=12),
-                bgcolor='rgba(255,255,255,0)',
-                borderwidth=0
-            )
-        )
-
-        graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-        js_code = f"""
-            var figure = {graphJSON};
-            Plotly.newPlot('qc_test', figure.data, figure.layout);
-        """
-        js_eval(js_code)
-    except Exception as e:
-        show_message(f"Error during plotting: {e}", "danger")
-        print(f"Plotting error: {e}")
-
-    finally:
+        global uploaded_df
+        loader = document.getElementById("loadingIndicator")
         if loader:
-            loader.style.display = "none"
+            loader.style.display = "block"
+
+        await asyncio.sleep(0)
+        try:
+            # Load the DataFrame
+            if uploaded_df is None:
+                show_message("No file uploaded. Using default file for display.")
+                uploaded_file = "./water_level_example_test.csv"
+                df = pd.read_csv(open_url(uploaded_file))
+            else:
+                df = uploaded_df
+                show_message("Uploaded file loaded and used.")
+
+            # Get selected variable names from UI
+            variable_select = js.document.getElementById("variableSelect")
+            variable = variable_select.value
+            x_var = js.document.getElementById("xVariableSelect").value
+            y_var = js.document.getElementById("yVariableSelect").value
+
+            # Set default variable names if not selected
+            if not variable:
+                variable = "sea_surface_height_above_sea_level"
+                y_var = "z"
+                x_var = "time"
+
+            # Convert time column to datetime
+            df[x_var] = df[x_var].astype(str).str.strip()
+            df[x_var] = pd.to_datetime(df[x_var], errors="raise")
+
+            # Run QC tests and get masks
+            result = run_tests(df, variable, qc_test, x_var=x_var, z_var=y_var, use_defaults=use_defaults)
+            mask = make_mask(df, result, variable, qc_test)
+
+            # Build the plot
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(
+                x=df[x_var].astype(str).tolist(),
+                y = df[variable].tolist(),
+                mode='lines',
+                name=variable,
+                line=dict(color='blue')
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=df[x_var].astype(str).tolist(),
+                y=mask['qc_fail'].tolist(),
+                mode='markers',
+                name='Fail',
+                marker=dict(color='red')
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=df[x_var].astype(str).tolist(),
+                y=mask['qc_notrun'].tolist(),
+                mode='markers',
+                name='Not Run',
+                marker=dict(color='gray')
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=df[x_var].astype(str).tolist(),
+                y=mask['qc_suspect'].tolist(),
+                mode='markers',
+                name='Suspect',
+                marker=dict(color='orange')
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=df[x_var].astype(str).tolist(),
+                y=mask['qc_pass'].tolist(),
+                mode='markers',
+                name='Pass',
+                marker=dict(color='green')
+            ))
+
+            fig.update_layout(
+                title=f'{variable} - {qc_test}',
+                xaxis_title=x_var,
+                yaxis_title=variable,
+                yaxis=dict(rangemode='tozero'),
+                showlegend=True,
+                legend=dict(
+                    x=1.05,
+                    y=0.5,
+                    traceorder='normal',
+                    font=dict(size=12),
+                    bgcolor='rgba(255,255,255,0)',
+                    borderwidth=0
+                )
+            )
+
+            graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+            js_code = f"""
+                var figure = {graphJSON};
+                Plotly.newPlot('qc_test', figure.data, figure.layout);
+            """
+            js_eval(js_code)
+        except Exception as e:
+            show_message(f"Error during plotting: {e}", "danger")
+            print(f"Plotting error: {e}")
+
+        finally:
+            if loader:
+                loader.style.display = "none"
 def selectChange(event):
     choice = document.getElementById("select").value
     print(f"Selected choice: {choice}")
@@ -265,15 +290,16 @@ def update_variable_options():
     if uploaded_df is None:
         return
 
-    variable_select = js.document.getElementById("variableSelect")
+    variable_ids = ["variableSelect", "xVariableSelect", "yVariableSelect"]
 
-    variable_select.innerHTML = ""
-
-    for col in uploaded_df.columns:
-        option = js.document.createElement("option")
-        option.value = col
-        option.text = col
-        variable_select.appendChild(option)
+    for var_id in variable_ids:
+        select_el = js.document.getElementById(var_id)
+        select_el.innerHTML = ""
+        for col in uploaded_df.columns:
+            option = js.document.createElement("option")
+            option.value = col
+            option.text = col
+            select_el.appendChild(option)
 
 def download_processed_data(event):
     global uploaded_df
@@ -302,14 +328,14 @@ def download_processed_data(event):
 
     show_message("File successfully downloaded.", "success")
 
-def run_qc_test(event):
+async def run_qc_test(event):
     global uploaded_df
     qc_test = document.getElementById("select").value
     if uploaded_df is None:
         show_message("No uploaded file found. Please upload a file first.", "warning")
         return
     try:
-        plot(qc_test)
+       await plot(qc_test)
     except Exception as e:
         show_message(f"Error running test: {e}", "danger")
         print(f"Error: {e}")
@@ -337,17 +363,6 @@ def show_message(msg, alert_type="info"):
 async def run_default_plot():
     qc_test = document.getElementById("select").value
     await plot(qc_test, use_defaults=True)
-async def run_qc_test(event):
-    global uploaded_df
-    qc_test = document.getElementById("select").value
-    if uploaded_df is None:
-        show_message("No uploaded file found. Please upload a file first.", "warning")
-        return
-    try:
-        plot(qc_test)
-    except Exception as e:
-        show_message(f"Error running test: {e}", "danger")
-        print(f"Error: {e}")
 
 setup()
 
