@@ -142,7 +142,7 @@ def run_tests(df, variable, selected_test, use_defaults=False):
     qc_result_pd = pd.DataFrame(
         qc_results["qartod"], columns=qc_results["qartod"].keys()
     )
-    test_results = qc_result_pd['spike_test']
+    test_results = qc_result_pd[selected_test]
     result = pd.concat([df, test_results], axis=1)
     return result.set_index("time")
 
