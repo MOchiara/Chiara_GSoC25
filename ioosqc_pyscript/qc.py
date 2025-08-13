@@ -335,8 +335,10 @@ def download_processed_data(event):
 
     qc_test = document.getElementById("select").value
     variable = document.getElementById("variableSelect").value
+    x_var = js.document.getElementById("xVariableSelect").value
+    y_var = js.document.getElementById("yVariableSelect").value
 
-    result = run_tests(uploaded_df, variable)
+    result = run_tests(uploaded_df, variable, qc_test, x_var=x_var, z_var=y_var, use_defaults=False)
     csv_content = result.to_csv(index=False)
 
     blob = js.Blob.new([csv_content], {"type": "text/csv"})
