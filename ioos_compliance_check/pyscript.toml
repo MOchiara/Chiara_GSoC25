@@ -18,7 +18,8 @@ packages = [ "pyudunits2", "micropip",
   "shapely>=1.7.1",
   "validators>=0.14.2",
   "panel",
-  "./static/wheels/compliance_checker-5.3.1.dev55+gb1b0b0c-py3-none-any.whl", ]
+  "https://github.com/MOchiara/Chiara_GSoC25/releases/download/v0.2-beta/compliance_checker-5.3.1.dev55+gb1b0b0c-py3-none-any.whl",
+]
 
 
 
