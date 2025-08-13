@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 from js import FileReader
 import js
 import asyncio
+from io import StringIO
 
 
 uploaded_df = None
@@ -47,31 +48,55 @@ def handle_file_upload(event):
         def onload(evt):
             global uploaded_df
             content = evt.target.result
-            from io import StringIO
-
-            # Detect possible delimiter
-            sample = content[:1024]
-            if ";" in sample and sample.count(";") > sample.count(","):
-                delimiter = ";"
-            elif "\t" in sample and sample.count("\t") > sample.count(","):
-                delimiter = "\t"
-            else:
-                delimiter = ","
+            filename = file.name.lower()
 
             try:
-                uploaded_df = pd.read_csv(StringIO(content), delimiter=delimiter)
+                if filename.endswith('.csv'):
+
+                    # Detect delimiter
+                    sample = content[:1024]
+                    if ";" in sample and sample.count(";") > sample.count(","):
+                        delimiter = ";"
+                    elif "\t" in sample and sample.count("\t") > sample.count(","):
+                        delimiter = "\t"
+                    else:
+                        delimiter = ","
+
+                    uploaded_df = pd.read_csv(StringIO(content), delimiter=delimiter)
+
+                elif filename.endswith('.nc'):
+                    import xarray as xr
+                    import io
+                    import base64
+
+                    binary = js.Uint8Array.new(content)
+                    buffer = bytes(binary.to_py())
+
+                    with xr.open_dataset(io.BytesIO(buffer)) as ds:
+                        df = ds.to_dataframe().reset_index()
+                        uploaded_df = df.dropna(axis=0, how='all')  # Clean empty rows
+
+                else:
+                    raise ValueError("Unsupported file type. Please upload a .csv or .nc file.")
+
                 update_variable_options()
 
                 filename_display = document.getElementById("filename-display")
                 filename_display.innerText = file.name
                 show_message(f"File '{file.name}' loaded successfully.", "success")
+
             except Exception as e:
                 show_message(f"Failed to load file: {e}", "danger")
-                print(f"CSV load error: {e}")
+                print(f"File load error: {e}")
 
         onload_proxy = create_proxy(onload)
         reader.onload = onload_proxy
-        reader.readAsText(file)
+
+        # Use readAsArrayBuffer for binary NetCDF files
+        if file.name.lower().endswith(".nc"):
+            reader.readAsArrayBuffer(file)
+        else:
+            reader.readAsText(file)
 
 
 def get_value_by_id(id):
