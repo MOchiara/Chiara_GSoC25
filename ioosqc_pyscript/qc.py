@@ -346,7 +346,6 @@ def download_processed_data(event):
 
     download_link = js.document.createElement("a")
     download_link.href = url
-    download_link.href = url
     download_link.download = "masked_qc_data.csv"
     download_link.style.display = "none"
     js.document.body.appendChild(download_link)
