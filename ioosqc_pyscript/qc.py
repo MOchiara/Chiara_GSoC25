@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 from js import FileReader
 import js
 import asyncio
+from io import StringIO
 
 
 uploaded_df = None
@@ -51,7 +52,6 @@ def handle_file_upload(event):
 
             try:
                 if filename.endswith('.csv'):
-                    from io import StringIO
 
                     # Detect delimiter
                     sample = content[:1024]
@@ -69,7 +69,6 @@ def handle_file_upload(event):
                     import io
                     import base64
 
-                    # Decode base64 and open with xarray
                     binary = js.Uint8Array.new(content)
                     buffer = bytes(binary.to_py())
 
