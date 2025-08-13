@@ -46,7 +46,6 @@ async def run_checker(event):
     from js import document
     file_input = document.querySelector('input[type="file"]')
     files = list(file_input.files)
-    url_input = document.getElementById("url-input").value.strip()
     checker_name = document.getElementById("select").value.split(":")[0]
 
     output_capture = io.StringIO()
@@ -65,12 +64,8 @@ async def run_checker(event):
                 tmp_path = tmp.name
                 ds_location = tmp_path
 
-        #URL input option
-        elif url_input:
-            ds_location = url_input
-
         else:
-            document.getElementById("status-msg").textContent = "No file or URL provided."
+            document.getElementById("status-msg").textContent = "No file provided."
             sys.stdout = original_stdout
             return
 
