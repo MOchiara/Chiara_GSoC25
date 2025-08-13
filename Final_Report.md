@@ -36,3 +36,7 @@ Furthermore, I slowly started working on my two GSoC projects IOOS qc webapp usi
 - MOchiara/Chiara_GSoC25#34  [FIX] Remove old wheel and use the new one for IOOS CC
 - MOchiara/Chiara_GSoC25#35  [FIX] Improve UI for IOOS CC
 - MOchiara/Chiara_GSoC25#36  [FIX] Improve UI for IOOS QC
+- MOchiara/Chiara_GSoC25#37  [FIX] Fix bugs on IOOS QC (typos to improve look and UI)
+- MOchiara/Chiara_GSoC25#38  [FIX] Remove option to load through OPENDAP for IOOS CC
+- MOchiara/Chiara_GSoC25#39  [FEAT] Add selection of x and y data and accept more csv delimiter for IOOS QC
+- MOchiara/Chiara_GSoC25#42  [FEAT] Add .nc file option for IOOS QC
