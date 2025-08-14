@@ -175,7 +175,7 @@ def run_tests(df, variable, selected_test, x_var="timestamp", z_var="z", use_def
     qc_results = qc.run(
         inp=df[variable],
         tinp=df[x_var],
-        zinp=df[z_var],
+        zinp=df[y_var],
     )
 
     qc_result_pd = pd.DataFrame(
