@@ -161,7 +161,7 @@ def get_user_config(selected_test):
     return {"qartod": {selected_test: config}}
 
 
-def run_tests(df, variable, selected_test, x_var="timestamp", z_var="z", use_defaults=False):
+def run_tests(df, variable, selected_test, x_var="timestamp", y_var="z", use_defaults=False):
     if use_defaults:
         from pyodide.http import open_url
         config_file_path = "./qc_config.json"
@@ -230,7 +230,7 @@ async def plot(qc_test, use_defaults=False):
             df[x_var] = pd.to_datetime(df[x_var], errors="raise")
 
             # Run QC tests and get masks
-            result = run_tests(df, variable, qc_test, x_var=x_var, z_var=y_var, use_defaults=use_defaults)
+            result = run_tests(df, variable, qc_test, x_var=x_var, y_var=y_var, use_defaults=use_defaults)
             mask = make_mask(df, result, variable, qc_test)
 
             # Build the plot
@@ -338,7 +338,7 @@ def download_processed_data(event):
     x_var = js.document.getElementById("xVariableSelect").value
     y_var = js.document.getElementById("yVariableSelect").value
 
-    result = run_tests(uploaded_df, variable, qc_test, x_var=x_var, z_var=y_var, use_defaults=False)
+    result = run_tests(uploaded_df, variable, qc_test, x_var=x_var, y_var=y_var, use_defaults=False)
     csv_content = result.to_csv(index=False)
 
     blob = js.Blob.new([csv_content], {"type": "text/csv"})
