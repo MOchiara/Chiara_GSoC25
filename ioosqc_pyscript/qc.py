@@ -206,7 +206,7 @@ async def plot(qc_test, use_defaults=False):
         try:
             # Load the DataFrame
             if uploaded_df is None:
-                show_message("No file uploaded. Using default file for display.")
+                show_message('No file uploaded. Using <a href="https://github.com/MOchiara/Chiara_GSoC25/releases/tag/v0.1-beta" target="_blank">default file (water_level_example_test.csv)</a> for display.')
                 uploaded_file = "./water_level_example_test.csv"
                 df = pd.read_csv(open_url(uploaded_file))
             else:
@@ -385,7 +385,7 @@ def setup():
 def show_message(msg, alert_type="info"):
     message_div = document.getElementById("message")
     message_div.className = f"alert alert-{alert_type}"
-    message_div.innerText = msg
+    message_div.innerHTML = msg
     message_div.style.display = "block"
 async def run_default_plot():
     qc_test = document.getElementById("select").value
