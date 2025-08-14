@@ -1,17 +1,17 @@
-import numpy as np
-import pandas as pd
+import sys
 import json
-from pyodide.ffi import create_proxy
-from pyodide.http import open_url
-from js import document
-import plotly
-from ioos_qc.config import QcConfig
-from js import eval as js_eval
-import plotly.graph_objects as go
-from js import FileReader
-import js
 import asyncio
 from io import StringIO
+import numpy as np
+import pandas as pd
+import plotly
+import plotly.graph_objects as go
+from ioos_qc.config import QcConfig
+from pyodide.ffi import create_proxy
+from pyodide.http import open_url
+import js
+from js import document, console, FileReader
+from js import eval as js_eval
 
 
 uploaded_df = None
@@ -415,6 +415,11 @@ async def handle_example_btn(event):
         await plot(qc_test, use_defaults=True)
     except Exception as e:
         show_message(f"Error loading example dataset: {e}", "danger")
+
+sys.stderr = type('stderr', (), {
+    'write': lambda self, msg: console.warn(msg.strip()) if msg.strip() else None,
+    'flush': lambda self: None
+})()
 
 setup()
 
