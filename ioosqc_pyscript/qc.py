@@ -207,8 +207,8 @@ async def plot(qc_test, use_defaults=False):
             # Load the DataFrame
             if uploaded_df is None:
                 show_message('No file uploaded. Using <a href="https://github.com/MOchiara/Chiara_GSoC25/releases/tag/v0.1-beta" target="_blank">default file (water_level_example_test.csv)</a> for display.')
-                uploaded_file = "./water_level_example_test.csv"
-                df = pd.read_csv(open_url(uploaded_file))
+                document.getElementById("defaultDataBtnContainer").style.display = "block"
+                return
             else:
                 df = uploaded_df
                 show_message("Uploaded file loaded and used.")
@@ -381,15 +381,40 @@ def setup():
     select_change_proxy = create_proxy(render_test_inputs)
     document.getElementById("select").addEventListener("change", select_change_proxy)
     render_test_inputs()
-    asyncio.ensure_future(run_default_plot())
+    if uploaded_df is None:
+        show_message(
+            "No file uploaded. Please upload your data or run with the example dataset.",
+            "warning"
+        )
+        btn_container = document.getElementById("defaultDataBtnContainer")
+        if btn_container:
+            btn_container.style.display = "block"
+
+    example_btn = document.getElementById("runExampleBtn")
+    if example_btn:
+        example_btn_proxy = create_proxy(handle_example_btn)
+        example_btn.addEventListener("click", example_btn_proxy)
+
 def show_message(msg, alert_type="info"):
     message_div = document.getElementById("message")
     message_div.className = f"alert alert-{alert_type}"
     message_div.innerHTML = msg
     message_div.style.display = "block"
-async def run_default_plot():
-    qc_test = document.getElementById("select").value
-    await plot(qc_test, use_defaults=True)
+
+async def handle_example_btn(event):
+    global uploaded_df
+    try:
+        show_message(
+            'Using <a href="https://github.com/MOchiara/Chiara_GSoC25/releases/tag/v0.1-beta" target="_blank">default file (water_level_example_test.csv)</a> for display.',
+            "info"
+        )
+        document.getElementById("defaultDataBtnContainer").style.display = "none"
+        uploaded_file = "./water_level_example_test.csv"
+        uploaded_df = pd.read_csv(open_url(uploaded_file))
+        qc_test = document.getElementById("select").value
+        await plot(qc_test, use_defaults=True)
+    except Exception as e:
+        show_message(f"Error loading example dataset: {e}", "danger")
 
 setup()
 
