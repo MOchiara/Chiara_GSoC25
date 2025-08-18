@@ -40,3 +40,10 @@ Furthermore, I slowly started working on my two GSoC projects IOOS qc webapp usi
 - MOchiara/Chiara_GSoC25#38  [FIX] Remove option to load through OPENDAP for IOOS CC
 - MOchiara/Chiara_GSoC25#39  [FEAT] Add selection of x and y data and accept more csv delimiter for IOOS QC
 - MOchiara/Chiara_GSoC25#42  [FEAT] Add .nc file option for IOOS QC
+- MOchiara/Chiara_GSoC25#43  [FIX] Fixed issues with flagged data download for IOOS QC
+- MOchiara/Chiara_GSoC25#44  [FIX] Removing lines IOOS CC checker.py to work with URL input files
+- MOchiara/Chiara_GSoC25#45  [FEAT] Use new wheel from the latest release for IOOS CC
+- MOchiara/Chiara_GSoC25#51  [FEAT] Add link to the default dataset in info message for IOOS QC
+- MOchiara/Chiara_GSoC25#52  [FEAT] No default plots but button option for IOOS QC
+- MOchiara/Chiara_GSoC25#53  [FEAT] IOOS QC - Remove warnings from web app
+- MOchiara/Chiara_GSoC25#54  [FIX] IOOS QC - Better explanation of input variables
