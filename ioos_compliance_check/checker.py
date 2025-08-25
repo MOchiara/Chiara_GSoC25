@@ -2,6 +2,7 @@ import micropip
 await micropip.install("requests")
 from js import document
 from pyodide.ffi import create_proxy
+import compliance_checker
 from compliance_checker.runner import CheckSuite, ComplianceChecker
 import io
 import tempfile
@@ -11,7 +12,7 @@ import js
 
 check_suite = CheckSuite()
 check_suite.load_all_available_checkers()
-
+document.getElementById("cc-version").innerText = compliance_checker.__version__
 def get_checker_list():
     check_suite = CheckSuite()
     check_suite.load_all_available_checkers()
