@@ -44,7 +44,14 @@ def on_file_selected(event):
 
 
 async def run_checker(event):
-    from js import document
+
+    loader = document.getElementById("loadingIndicator")
+    loader.style.display = "block"
+
+    status_msg = document.getElementById("status-msg")
+    status_msg.textContent = ""
+    status_msg.className = ""
+
     file_input = document.querySelector('input[type="file"]')
     files = list(file_input.files)
     checker_name = document.getElementById("select").value.split(":")[0]
@@ -54,7 +61,6 @@ async def run_checker(event):
     sys.stdout = output_capture
 
     try:
-        # File upload
         if files:
             file = files[0]
             file_data = await file.arrayBuffer()
@@ -64,9 +70,8 @@ async def run_checker(event):
                 tmp.write(data_bytes)
                 tmp_path = tmp.name
                 ds_location = tmp_path
-
         else:
-            document.getElementById("status-msg").textContent = "No file provided."
+            status_msg.textContent = "No file provided."
             sys.stdout = original_stdout
             return
 
@@ -82,7 +87,6 @@ async def run_checker(event):
         sys.stdout = original_stdout
 
         output_text = output_capture.getvalue()
-        status_msg = document.getElementById("status-msg")
         status_text = f"Passed: {passed}, Had errors: {had_errors}. Check report below"
         status_msg.textContent = status_text
         status_msg.className = "text-center"
@@ -96,7 +100,11 @@ async def run_checker(event):
 
     except Exception as e:
         sys.stdout = original_stdout
-        document.getElementById("status-msg").textContent = f"Error: {e}"
+        status_msg.textContent = f"Error: {e}"
+        status_msg.className = "alert alert-danger text-center"
+
+    finally:
+        loader.style.display = "none"
 
 def download_report(event):
     report_text = document.getElementById("report-output").textContent
