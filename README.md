@@ -1,4 +1,4 @@
-For more info about the project and my work, check my[final report GitHub gist](https://gist.github.com/MOchiara/cd4fd3b2be2cf94d818f0fee0b1fb4cc)
+For more info about the project and my work, check my [final report GitHub gist](https://gist.github.com/MOchiara/cd4fd3b2be2cf94d818f0fee0b1fb4cc)
 
 ## General info
 This repositories contais all the work I developed during the time I worked for [my Google Summer of Code 2025 project](https://summerofcode.withgoogle.com/programs/2025/projects/YR0AVIjH). 
