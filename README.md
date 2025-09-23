@@ -1,5 +1,7 @@
 For more info about the project and my work, check my [final report GitHub gist](https://gist.github.com/MOchiara/cd4fd3b2be2cf94d818f0fee0b1fb4cc)
 
+The IOOS QC and Compliance Checker WASM repositories have been moved to the IOOS Github repository for future development. You can find the repositories here [IOOS QC WASM](https://github.com/ioos/ioos-qc-wasm-web) and [IOOS Compliance Checker WASM](https://github.com/ioos/compliance-checker-wasm-web).
+
 ## General info
 This repositories contais all the work I developed during the time I worked for [my Google Summer of Code 2025 project](https://summerofcode.withgoogle.com/programs/2025/projects/YR0AVIjH). 
 This project aims to develop a user-friendly, browser-based interface for existing oceanographic [data quality control](https://github.com/ocefpaf/ioos_qc_webapp) and [compliance checker tools](https://github.com/ioos/compliance-checker-web/tree/master). Its primary goal is to provide users with an interactive platform to validate and analyze their datasets more efficiently.
